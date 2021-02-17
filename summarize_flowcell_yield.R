@@ -44,7 +44,7 @@ for(i in unique(df$Lane)) {
 out$Undetermined = undet %>% pull(`# Reads`) %>% sum()
 out$Pct_Undet = out$Undetermined / out$Total_Read_Pairs
 
-write_tsv(out, path = output_file)
+write_tsv(out, file = output_file)
 print(sprintf("Wrote output to %s", output_file))
   
   
