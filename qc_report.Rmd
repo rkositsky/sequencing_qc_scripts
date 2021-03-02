@@ -1,0 +1,260 @@
+---
+title: "Quality control figures"
+author: "Rachel Kositsky"
+date: "2/17/2021"
+output: html_document
+params: 
+  qc_excel: "ERROR_NO_PATH"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library("tidyverse")
+library("readxl")
+library("scales")
+```
+
+
+```{r input, echo=FALSE, warning=FALSE}
+#### Read in input ####
+# Keep just one analysis per submission ID
+df = read_excel(path = params$qc_excel) %>% distinct(submission_id, .keep_all = T)
+# Make capture pool a discrete factor variable
+df$capture_pool_id = as.factor(df$capture_pool_id)
+df$capture_input_amount = as.factor(df$capture_input_amount)
+# Make submission ID a discrete factor variable
+df$submission_id = as.factor(df$submission_id)
+
+# Check it's all from one flowcell
+if(length(table(df$flowcell)) > 1) {
+  print("Found more than 1 flowcell:")
+  print(table(df$flowcell))
+  warning("More than one flowcell found in QC table!")
+}
+```
+
+## Which panel are included?
+
+These were the panels for these submissions:
+```{r panels, echo=FALSE}
+table(df$panel)
+```
+
+
+## Read coverage
+
+The bar charts below graph the read pairs and RNA percentage per submission.
+
+```{r read pairs, echo=FALSE}
+flowcell_title = sprintf("Flowcell %s (n=%d)", 
+                         paste(unique(df$flowcell), collapse = ","), 
+                         nrow(df))
+df_long <- df %>% arrange(demux_input_read_pairs) %>% 
+  select(demux_dna_read_pairs, demux_rna_read_pairs, capture_pool_id, submission_id) %>%
+  gather("Nucelic_Acid", "Value", -capture_pool_id, -submission_id)
+
+ggplot(data = df_long,
+       aes(x = submission_id, y = Value, fill = Nucelic_Acid)) + 
+  geom_col() + scale_y_continuous(labels = comma) +
+  scale_x_discrete(labels = c()) +
+  labs(subtitle = flowcell_title,
+       title = "Read pairs per submission", y = "Read pairs")
+
+ggplot(data = df_long, 
+       aes(x = submission_id, y = Value, fill = Nucelic_Acid)) + 
+  geom_bar(position = "fill", stat = "identity") +
+  scale_y_continuous(labels = scales::percent_format()) +
+  scale_x_discrete(labels = c()) +
+  labs(subtitle = flowcell_title,
+       title = "DNA/RNA breakdown per submission", 
+       y = "Percentage of reads")
+```
+
+## PCR duplicates
+
+#### PCR duplicates colored by capture pool
+For DNA:
+```{r DNA PCR duplicates, echo = FALSE}
+# DNA PCR dups
+p <- ggplot(data = df,
+       aes(x = submission_id, y = dna_pct_pcr_dups/100, fill = capture_pool_id)) + 
+  geom_hline(yintercept = 0.25, linetype = "dashed", alpha = 0.5) +
+  geom_col() +
+  scale_y_continuous(labels = scales::percent_format()) +
+  scale_x_discrete(labels = c()) +
+  labs(subtitle = flowcell_title,
+       title = "DNA PCR duplicate rate per submission",
+       y = "DNA percent PCR duplicates")
+if (max(df$dna_pct_pcr_dups, na.rm = T) > 50) {
+  p <- p + geom_hline(yintercept = 0.50, linetype = "dashed", alpha = 0.5)
+}
+if (max(df$dna_pct_pcr_dups, na.rm = T) > 70) {
+  p <- p + geom_hline(yintercept = 0.75, linetype = "dashed", alpha = 0.5)
+}
+print(p)
+```
+
+For RNA:
+```{r RNA PCR duplicates, echo = FALSE}
+# RNA PCR dups
+p <- ggplot(data = df, 
+            aes(x = submission_id, y = rna_pct_pcr_dups/100, fill = capture_pool_id)) + 
+  geom_hline(yintercept = 0.25, linetype = "dashed", alpha = 0.5) +
+  geom_col() +
+  scale_y_continuous(labels = scales::percent_format()) +
+  scale_x_discrete(labels = c()) +
+  labs(subtitle = flowcell_title,
+       title = "RNA PCR duplicate rate per submission",
+       y = "RNA percent PCR duplicates")
+if (max(df$rna_pct_pcr_dups, na.rm = T) > 50) {
+  p <- p + geom_hline(yintercept = 0.50, linetype = "dashed", alpha = 0.5)
+}
+if (max(df$rna_pct_pcr_dups, na.rm = T) > 70) {
+  p <- p + geom_hline(yintercept = 0.75, linetype = "dashed", alpha = 0.5)
+}
+print(p)
+```
+
+#### PCR duplicates colored by capture input volume
+For DNA:
+```{r DNA PCR duplicates capture input, echo = FALSE}
+# DNA PCR dups
+p <- ggplot(data = df,
+       aes(x = submission_id, y = dna_pct_pcr_dups/100, fill = capture_input_volume)) + 
+  geom_hline(yintercept = 0.25, linetype = "dashed", alpha = 0.5) +
+  geom_col() +
+  scale_y_continuous(labels = scales::percent_format()) +
+  scale_x_discrete(labels = c()) +
+  labs(subtitle = flowcell_title,
+       title = "DNA PCR duplicate rate per submission",
+       y = "DNA percent PCR duplicates")
+if (max(df$dna_pct_pcr_dups, na.rm = T) > 50) {
+  p <- p + geom_hline(yintercept = 0.50, linetype = "dashed", alpha = 0.5)
+}
+if (max(df$dna_pct_pcr_dups, na.rm = T) > 70) {
+  p <- p + geom_hline(yintercept = 0.75, linetype = "dashed", alpha = 0.5)
+}
+print(p)
+```
+
+For RNA:
+```{r RNA PCR duplicates capture input, echo = FALSE}
+# RNA PCR dups
+p <- ggplot(data = df, 
+            aes(x = submission_id, y = rna_pct_pcr_dups/100, fill = capture_input_volume)) + 
+  geom_hline(yintercept = 0.25, linetype = "dashed", alpha = 0.5) +
+  geom_col() +
+  scale_y_continuous(labels = scales::percent_format()) +
+  scale_x_discrete(labels = c()) +
+  labs(subtitle = flowcell_title,
+       title = "RNA PCR duplicate rate per submission",
+       y = "RNA percent PCR duplicates")
+if (max(df$rna_pct_pcr_dups, na.rm = T) > 50) {
+  p <- p + geom_hline(yintercept = 0.50, linetype = "dashed", alpha = 0.5)
+}
+if (max(df$rna_pct_pcr_dups, na.rm = T) > 70) {
+  p <- p + geom_hline(yintercept = 0.75, linetype = "dashed", alpha = 0.5)
+}
+print(p)
+```
+
+#### PCR duplicates colored by capture input amount
+For DNA:
+```{r DNA PCR duplicates capture input amt, echo = FALSE}
+# DNA PCR dups
+p <- ggplot(data = df,
+       aes(x = submission_id, y = dna_pct_pcr_dups/100, fill = capture_input_amount)) + 
+  geom_hline(yintercept = 0.25, linetype = "dashed", alpha = 0.5) +
+  geom_col() +
+  scale_y_continuous(labels = scales::percent_format()) +
+  scale_x_discrete(labels = c()) +
+  labs(subtitle = flowcell_title,
+       title = "DNA PCR duplicate rate per submission",
+       y = "DNA percent PCR duplicates")
+if (max(df$dna_pct_pcr_dups, na.rm = T) > 50) {
+  p <- p + geom_hline(yintercept = 0.50, linetype = "dashed", alpha = 0.5)
+}
+if (max(df$dna_pct_pcr_dups, na.rm = T) > 70) {
+  p <- p + geom_hline(yintercept = 0.75, linetype = "dashed", alpha = 0.5)
+}
+print(p)
+```
+
+For RNA:
+```{r RNA PCR duplicates capture input amt, echo = FALSE}
+# RNA PCR dups
+p <- ggplot(data = df, 
+            aes(x = submission_id, y = rna_pct_pcr_dups/100, fill = capture_input_amount)) + 
+  geom_hline(yintercept = 0.25, linetype = "dashed", alpha = 0.5) +
+  geom_col() +
+  scale_y_continuous(labels = scales::percent_format()) +
+  scale_x_discrete(labels = c()) +
+  labs(subtitle = flowcell_title,
+       title = "RNA PCR duplicate rate per submission",
+       y = "RNA percent PCR duplicates")
+if (max(df$rna_pct_pcr_dups, na.rm = T) > 50) {
+  p <- p + geom_hline(yintercept = 0.50, linetype = "dashed", alpha = 0.5)
+}
+if (max(df$rna_pct_pcr_dups, na.rm = T) > 70) {
+  p <- p + geom_hline(yintercept = 0.75, linetype = "dashed", alpha = 0.5)
+}
+print(p)
+```
+
+
+## Coverage
+DNA coverage:
+```{r DNA coverage, echo=FALSE}
+median_cov = median(df$dna_mean_coverage)
+p <- ggplot(data = df,
+            aes(x = submission_id, y = dna_mean_coverage, fill = capture_pool_id)) + 
+  geom_hline(yintercept = median_cov, alpha = 0.5) +
+  geom_col() +
+  scale_x_discrete(labels = c()) +
+  labs(subtitle = flowcell_title,
+       title = sprintf("DNA mean coverage per submission [median %2.0fx]", median_cov),
+       y = "DNA mean coverage (x)")
+print(p)
+```
+
+RNA coverage:
+```{r RNA coverage, echo=FALSE}
+median_cov = median(df$rna_mean_coverage)
+p <- ggplot(data = df,
+            aes(x = submission_id, y = rna_mean_coverage, fill = capture_pool_id)) + 
+  geom_hline(yintercept = median_cov, alpha = 0.5) +
+  geom_col() +
+  scale_x_discrete(labels = c()) +
+  labs(subtitle = flowcell_title,
+       title = sprintf("RNA mean coverage per submission [median %2.0fx]", median_cov),
+       y = "RNA mean coverage (x)")
+print(p)
+```
+
+## On-target performance
+
+DNA on-target:
+```{r DNA on-target, echo=FALSE}
+median_on_target = median(df$dna_pct_on_target)
+ggplot(data = df,
+       aes(x = submission_id, y = dna_pct_on_target/100, fill = capture_pool_id)) + 
+  geom_col() +
+  scale_y_continuous(labels = scales::percent_format()) +
+  scale_x_discrete(labels = c()) +
+  labs(subtitle = flowcell_title,
+       title = sprintf("DNA on-target rate per submission [median %2.0fx]", median_on_target),
+       y = "DNA percent on-target")
+```
+
+RNA on-target:
+```{r RNA on-target, echo=FALSE}
+median_on_target = median(df$rna_pct_on_target)
+ggplot(data = df,
+       aes(x = submission_id, y = rna_pct_on_target/100, fill = capture_pool_id)) + 
+  geom_col() +
+  scale_y_continuous(labels = scales::percent_format()) +
+  scale_x_discrete(labels = c()) +
+  labs(subtitle = flowcell_title,
+       title = sprintf("RNA on-target rate per submission [median %2.0fx]", median_on_target),
+       y = "RNA percent on-target")
+```
