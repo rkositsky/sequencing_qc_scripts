@@ -9,7 +9,10 @@ params:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-library("tidyverse")
+library("readr")
+library("tidyr")
+library("dplyr")
+library("ggplot2")
 library("readxl")
 library("scales")
 ```
