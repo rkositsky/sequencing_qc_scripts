@@ -1,7 +1,7 @@
 ---
 title: "Quality control figures"
 author: "Rachel Kositsky"
-date: "2/17/2021"
+date: "`r Sys.Date()`"
 output: html_document
 params: 
   qc_excel: "ERROR_NO_PATH"
@@ -52,14 +52,33 @@ The bar charts below graph the read pairs and RNA percentage per submission.
 flowcell_title = sprintf("Flowcell %s (n=%d)", 
                          paste(unique(df$flowcell), collapse = ","), 
                          nrow(df))
+MAX_X_LABELS = 20
+
 df_long <- df %>% arrange(demux_input_read_pairs) %>% 
   select(demux_dna_read_pairs, demux_rna_read_pairs, capture_pool_id, submission_id) %>%
   gather("Nucelic_Acid", "Value", -capture_pool_id, -submission_id)
 
+df_x_format <- function(b) {
+  if (nrow(df)/2 < MAX_X_LABELS) {
+    return(b)
+  } else {
+    return("")
+  }
+}
+
+df_long_x_format <- function(b) {
+  if (nrow(df_long)/2 < MAX_X_LABELS) {
+    return(b)
+  } else {
+    return("")
+  }
+}
+
 ggplot(data = df_long,
        aes(x = submission_id, y = Value, fill = Nucelic_Acid)) + 
   geom_col() + scale_y_continuous(labels = comma) +
-  scale_x_discrete(labels = c()) +
+  scale_x_discrete(labels = df_long_x_format) +
+  theme(axis.text.x = element_text(angle = 90)) +
   labs(subtitle = flowcell_title,
        title = "Read pairs per submission", y = "Read pairs")
 
@@ -67,7 +86,8 @@ ggplot(data = df_long,
        aes(x = submission_id, y = Value, fill = Nucelic_Acid)) + 
   geom_bar(position = "fill", stat = "identity") +
   scale_y_continuous(labels = scales::percent_format()) +
-  scale_x_discrete(labels = c()) +
+  scale_x_discrete(labels = df_long_x_format) +
+  theme(axis.text.x = element_text(angle = 90)) +
   labs(subtitle = flowcell_title,
        title = "DNA/RNA breakdown per submission", 
        y = "Percentage of reads")
@@ -84,7 +104,8 @@ p <- ggplot(data = df,
   geom_hline(yintercept = 0.25, linetype = "dashed", alpha = 0.5) +
   geom_col() +
   scale_y_continuous(labels = scales::percent_format()) +
-  scale_x_discrete(labels = c()) +
+  scale_x_discrete(labels = df_x_format) +
+  theme(axis.text.x = element_text(angle = 90)) +
   labs(subtitle = flowcell_title,
        title = "DNA PCR duplicate rate per submission",
        y = "DNA percent PCR duplicates")
@@ -105,7 +126,8 @@ p <- ggplot(data = df,
   geom_hline(yintercept = 0.25, linetype = "dashed", alpha = 0.5) +
   geom_col() +
   scale_y_continuous(labels = scales::percent_format()) +
-  scale_x_discrete(labels = c()) +
+  scale_x_discrete(labels = df_x_format) +
+  theme(axis.text.x = element_text(angle = 90)) +
   labs(subtitle = flowcell_title,
        title = "RNA PCR duplicate rate per submission",
        y = "RNA percent PCR duplicates")
@@ -127,7 +149,8 @@ p <- ggplot(data = df,
   geom_hline(yintercept = 0.25, linetype = "dashed", alpha = 0.5) +
   geom_col() +
   scale_y_continuous(labels = scales::percent_format()) +
-  scale_x_discrete(labels = c()) +
+  scale_x_discrete(labels = df_x_format) +
+  theme(axis.text.x = element_text(angle = 90)) +
   labs(subtitle = flowcell_title,
        title = "DNA PCR duplicate rate per submission",
        y = "DNA percent PCR duplicates")
@@ -148,7 +171,8 @@ p <- ggplot(data = df,
   geom_hline(yintercept = 0.25, linetype = "dashed", alpha = 0.5) +
   geom_col() +
   scale_y_continuous(labels = scales::percent_format()) +
-  scale_x_discrete(labels = c()) +
+  scale_x_discrete(labels = df_x_format) +
+  theme(axis.text.x = element_text(angle = 90)) +
   labs(subtitle = flowcell_title,
        title = "RNA PCR duplicate rate per submission",
        y = "RNA percent PCR duplicates")
@@ -170,7 +194,8 @@ p <- ggplot(data = df,
   geom_hline(yintercept = 0.25, linetype = "dashed", alpha = 0.5) +
   geom_col() +
   scale_y_continuous(labels = scales::percent_format()) +
-  scale_x_discrete(labels = c()) +
+  scale_x_discrete(labels = df_x_format) +
+  theme(axis.text.x = element_text(angle = 90)) +
   labs(subtitle = flowcell_title,
        title = "DNA PCR duplicate rate per submission",
        y = "DNA percent PCR duplicates")
@@ -191,7 +216,8 @@ p <- ggplot(data = df,
   geom_hline(yintercept = 0.25, linetype = "dashed", alpha = 0.5) +
   geom_col() +
   scale_y_continuous(labels = scales::percent_format()) +
-  scale_x_discrete(labels = c()) +
+  scale_x_discrete(labels = df_x_format) +
+  theme(axis.text.x = element_text(angle = 90)) +
   labs(subtitle = flowcell_title,
        title = "RNA PCR duplicate rate per submission",
        y = "RNA percent PCR duplicates")
@@ -213,7 +239,8 @@ p <- ggplot(data = df,
             aes(x = submission_id, y = dna_mean_coverage, fill = capture_pool_id)) + 
   geom_hline(yintercept = median_cov, alpha = 0.5) +
   geom_col() +
-  scale_x_discrete(labels = c()) +
+  scale_x_discrete(labels = df_x_format) +
+  theme(axis.text.x = element_text(angle = 90)) +
   labs(subtitle = flowcell_title,
        title = sprintf("DNA mean coverage per submission [median %2.0fx]", median_cov),
        y = "DNA mean coverage (x)")
@@ -227,7 +254,8 @@ p <- ggplot(data = df,
             aes(x = submission_id, y = rna_mean_coverage, fill = capture_pool_id)) + 
   geom_hline(yintercept = median_cov, alpha = 0.5) +
   geom_col() +
-  scale_x_discrete(labels = c()) +
+  scale_x_discrete(labels = df_x_format) +
+  theme(axis.text.x = element_text(angle = 90)) +
   labs(subtitle = flowcell_title,
        title = sprintf("RNA mean coverage per submission [median %2.0fx]", median_cov),
        y = "RNA mean coverage (x)")
@@ -243,7 +271,8 @@ ggplot(data = df,
        aes(x = submission_id, y = dna_pct_on_target/100, fill = capture_pool_id)) + 
   geom_col() +
   scale_y_continuous(labels = scales::percent_format()) +
-  scale_x_discrete(labels = c()) +
+  scale_x_discrete(labels = df_x_format) +
+  theme(axis.text.x = element_text(angle = 90)) +
   labs(subtitle = flowcell_title,
        title = sprintf("DNA on-target rate per submission [median %2.0fx]", median_on_target),
        y = "DNA percent on-target")
@@ -256,7 +285,8 @@ ggplot(data = df,
        aes(x = submission_id, y = rna_pct_on_target/100, fill = capture_pool_id)) + 
   geom_col() +
   scale_y_continuous(labels = scales::percent_format()) +
-  scale_x_discrete(labels = c()) +
+  scale_x_discrete(labels = df_x_format) +
+  theme(axis.text.x = element_text(angle = 90)) +
   labs(subtitle = flowcell_title,
        title = sprintf("RNA on-target rate per submission [median %2.0fx]", median_on_target),
        y = "RNA percent on-target")
