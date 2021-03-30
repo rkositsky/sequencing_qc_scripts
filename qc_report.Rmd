@@ -40,6 +40,12 @@ if(length(table(df$flowcell)) > 1) {
 
 These were the panels for these submissions:
 ```{r panels, echo=FALSE}
+# Exit if there are no submissions
+if(nrow(df) == 0) {
+  print("No analyses were run for this flowcell. Exiting early.")
+  knitr::knit_exit()
+}
+
 table(df$panel)
 ```
 

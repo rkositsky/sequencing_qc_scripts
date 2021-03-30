@@ -2,10 +2,10 @@
 FROM r-base:3.5.1
 
 # Metadata
-LABEL base.image="sequencingqc:v20210308"
-LABEL version="1"
+LABEL base.image="sequencingqc:v20210329"
+LABEL version="2"
 LABEL software="SequencingQC"
-LABEL software.version="20210308"
+LABEL software.version="20210329"
 LABEL description="A collection of scripts to generate flowcell level QC and figures"
 LABEL tags="flowcell qc"
 
